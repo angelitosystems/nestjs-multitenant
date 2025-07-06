@@ -160,11 +160,11 @@ async function loadTenantConfig(): Promise<any> {
     const databaseMatch = configContent.match(/database:\s*.*?['"](.*?)['"]/);
     
     return {
-      driver: driverMatch ? driverMatch[1].toLowerCase() : 'postgresql',
-      strategy: strategyMatch ? strategyMatch[1].toLowerCase() : 'database_per_tenant',
+      driver: driverMatch?.[1]?.toLowerCase() || 'postgresql',
+      strategy: strategyMatch?.[1]?.toLowerCase() || 'database_per_tenant',
       centralDb: {
         host: hostMatch ? hostMatch[1] : 'localhost',
-        port: portMatch ? parseInt(portMatch[1]) : 5432,
+        port: portMatch ? parseInt(portMatch[1]!) : 5432,
         username: usernameMatch ? usernameMatch[1] : 'root',
         password: passwordMatch ? passwordMatch[1] : '',
         database: databaseMatch ? databaseMatch[1] : 'central_tenants',

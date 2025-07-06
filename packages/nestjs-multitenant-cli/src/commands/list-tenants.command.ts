@@ -51,7 +51,7 @@ export async function listTenantsCommand(options: ListTenantsOptions): Promise<v
     }
 
     // Display tenants in table format
-    displayTenantsTable(tenants, options.all);
+    displayTenantsTable(tenants, options.all || false);
     
     // Show summary
     showSummary(tenants);
@@ -70,7 +70,7 @@ async function loadTenantConfig(): Promise<any> {
     
     // Extract configuration values using regex (basic parsing)
     const driverMatch = configContent.match(/driver:\s*TenancyDriver\.([A-Z_]+)/);
-    const driver = driverMatch ? driverMatch[1].toLowerCase() : 'postgresql';
+    const driver = driverMatch?.[1]?.toLowerCase() || 'postgresql';
     
     // Extract central DB config
     const hostMatch = configContent.match(/host:\s*.*?['"](.*?)['"]/);
@@ -83,7 +83,7 @@ async function loadTenantConfig(): Promise<any> {
       driver,
       centralDb: {
         host: hostMatch ? hostMatch[1] : 'localhost',
-        port: portMatch ? parseInt(portMatch[1]) : 5432,
+        port: portMatch ? parseInt(portMatch[1]!) : 5432,
         username: usernameMatch ? usernameMatch[1] : 'root',
         password: passwordMatch ? passwordMatch[1] : '',
         database: databaseMatch ? databaseMatch[1] : 'central_tenants',
@@ -105,7 +105,7 @@ function displayTenantsTable(tenants: TenantInfo[], showAll: boolean): void {
   // Print headers
   let headerRow = '';
   headers.forEach((header, index) => {
-    headerRow += header.padEnd(columnWidths[index]);
+    headerRow += header.padEnd(columnWidths[index] || 0);
   });
   console.log(chalk.bold.blue(headerRow));
   console.log(chalk.blue('─'.repeat(headerRow.length)));
@@ -123,7 +123,7 @@ function displayTenantsTable(tenants: TenantInfo[], showAll: boolean): void {
     
     let rowString = '';
     row.forEach((cell, index) => {
-      const paddedCell = cell.padEnd(columnWidths[index]);
+      const paddedCell = cell.padEnd(columnWidths[index] || 0);
       
       if (index === 4) { // Status column
         rowString += tenant.isActive 

@@ -386,7 +386,7 @@ async function getProjectAnswers(options: CreateOptions): Promise<CreateAnswers>
     },
   ];
 
-  return await inquirer.prompt(questions);
+  return await inquirer.prompt(questions as any) as CreateAnswers;
 }
 
 async function createNestJSProject(projectPath: string, answers: CreateAnswers): Promise<void> {

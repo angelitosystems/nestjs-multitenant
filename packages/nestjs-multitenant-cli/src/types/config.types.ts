@@ -59,5 +59,5 @@ export interface ProjectStructure {
   hasNestCLI: boolean;
   hasAppModule: boolean;
   packageManager: 'npm' | 'yarn' | 'pnpm';
-  nestVersion?: string;
+  nestVersion?: string | undefined;
 }

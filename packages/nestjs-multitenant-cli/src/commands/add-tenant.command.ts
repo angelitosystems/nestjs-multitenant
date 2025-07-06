@@ -123,7 +123,7 @@ async function loadTenantConfig(): Promise<any> {
     
     // Extract configuration values using regex (basic parsing)
     const driverMatch = configContent.match(/driver:\s*TenancyDriver\.([A-Z_]+)/);
-    const driver = driverMatch ? driverMatch[1].toLowerCase() : 'postgresql';
+    const driver = driverMatch?.[1]?.toLowerCase() || 'postgresql';
     
     return { driver };
   } catch (error) {
@@ -141,7 +141,7 @@ async function getTenantInformation(
       throw new Error('In non-interactive mode, id, name, host, username, and database are required');
     }
     
-    return {
+    const result: AddTenantAnswers = {
       id: options.id,
       name: options.name,
       host: options.host,
@@ -149,9 +149,14 @@ async function getTenantInformation(
       username: options.username,
       password: options.password || '',
       database: options.database,
-      schema: options.schema,
       isActive: true,
     };
+    
+    if (options.schema !== undefined) {
+      result.schema = options.schema;
+    }
+    
+    return result;
   }
 
   const questions = [
@@ -256,7 +261,7 @@ async function getTenantInformation(
     },
   ];
 
-  const answers = await inquirer.prompt(questions);
+  const answers = await inquirer.prompt(questions as any) as any;
   
   // Parse metadata if provided
   if (answers.metadataJson) {
@@ -270,7 +275,7 @@ async function getTenantInformation(
   delete answers.addMetadata;
   delete answers.metadataJson;
   
-  return answers;
+  return answers as AddTenantAnswers;
 }
 
 function getDefaultPort(driver: TenancyDriver): number {

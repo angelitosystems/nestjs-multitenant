@@ -272,7 +272,7 @@ async function getConfigurationAnswers(options: InitOptions): Promise<InitAnswer
     },
   ];
 
-  return await inquirer.prompt(questions);
+  return await inquirer.prompt(questions as any) as InitAnswers;
 }
 
 async function installDependencies(): Promise<void> {
