@@ -172,9 +172,14 @@ const TEMPLATES = {
   }
 };
 
-export async function createCommand(options: CreateOptions): Promise<void> {
+export async function createCommand(name?: string, options: CreateOptions = {}): Promise<void> {
   try {
     console.log(chalk.blue.bold('\n🚀 NestJS Multitenant Project Creator\n'));
+
+    // If name is provided as positional argument, add it to options
+    if (name) {
+      options.name = name;
+    }
 
     // Get project configuration from user
     const answers = await getProjectAnswers(options);
@@ -228,7 +233,7 @@ export async function createCommand(options: CreateOptions): Promise<void> {
   }
 }
 
-async function getProjectAnswers(options: CreateOptions): Promise<CreateAnswers> {
+async function getProjectAnswers(options: CreateOptions = {}): Promise<CreateAnswers> {
   if (options.interactive === false) {
     return {
       projectName: options.name || 'my-multitenant-app',
