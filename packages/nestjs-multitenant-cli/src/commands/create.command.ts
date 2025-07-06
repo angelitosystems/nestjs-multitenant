@@ -188,21 +188,30 @@ export async function createCommand(name?: string, options: CreateOptions = {}):
     const projectPath = path.join(process.cwd(), answers.projectName);
     
     if (await fs.pathExists(projectPath)) {
-      const { overwrite } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'overwrite',
-          message: `Directory '${answers.projectName}' already exists. Do you want to overwrite it?`,
-          default: false,
-        },
-      ]);
+      try {
+        const { overwrite } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'overwrite',
+            message: `Directory '${answers.projectName}' already exists. Do you want to overwrite it?`,
+            default: false,
+          },
+        ]);
 
-      if (!overwrite) {
-        console.log(chalk.yellow('Operation cancelled.'));
-        return;
+        if (!overwrite) {
+          console.log(chalk.yellow('Operation cancelled.'));
+          return;
+        }
+
+        await fs.remove(projectPath);
+      } catch (error: any) {
+        // Handle user cancellation during overwrite confirmation
+        if (error.name === 'ExitPromptError' || error.message?.includes('SIGINT') || error.message?.includes('User force closed')) {
+          console.log(chalk.yellow('\n\n⚠️  Operation cancelled by user.'));
+          return;
+        }
+        throw error; // Re-throw other errors
       }
-
-      await fs.remove(projectPath);
     }
 
     console.log(chalk.cyan(`Creating project in ${projectPath}...`));
@@ -227,8 +236,15 @@ export async function createCommand(name?: string, options: CreateOptions = {}):
     // Show success message
     showProjectCreatedMessage(answers);
 
-  } catch (error) {
-    console.error(chalk.red('❌ Project creation failed:'), error);
+  } catch (error: any) {
+    // Handle user cancellation (Ctrl+C) gracefully
+    if (error.name === 'ExitPromptError' || error.message?.includes('SIGINT') || error.message?.includes('User force closed')) {
+      console.log(chalk.yellow('\n\n⚠️  Operation cancelled by user.'));
+      console.log(chalk.gray('Project creation was interrupted.'));
+      process.exit(0); // Exit with success code since user intentionally cancelled
+    }
+    
+    console.error(chalk.red('❌ Project creation failed:'), error.message || error);
     process.exit(1);
   }
 }
@@ -391,7 +407,12 @@ async function getProjectAnswers(options: CreateOptions = {}): Promise<CreateAns
     },
   ];
 
-  return await inquirer.prompt(questions as any) as CreateAnswers;
+  try {
+    return await inquirer.prompt(questions as any) as CreateAnswers;
+  } catch (error: any) {
+    // Re-throw the error to be handled by the main createCommand function
+    throw error;
+  }
 }
 
 async function createNestJSProject(projectPath: string, answers: CreateAnswers): Promise<void> {
